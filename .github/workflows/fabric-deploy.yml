@@ -1,0 +1,66 @@
+name: Deploy Fabric
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "README.md"
+  workflow_dispatch:
+
+# Jangan jalankan dua deploy bersamaan ke workspace yang sama.
+concurrency:
+  group: fabric-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-test:
+    name: Deploy ke TEST
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: .deploy/requirements.txt
+
+      - name: Install fabric-cicd
+        run: pip install -r .deploy/requirements.txt
+
+      - name: Deploy
+        run: python .deploy/deploy.py --environment TEST
+        env:
+          FABRIC_WORKSPACE_ID: ${{ vars.FABRIC_WORKSPACE_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+  deploy-prod:
+    name: Deploy ke PROD
+    needs: deploy-test
+    runs-on: ubuntu-latest
+    environment: prod # pasang "Required reviewers" di GitHub agar butuh approval
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: .deploy/requirements.txt
+
+      - name: Install fabric-cicd
+        run: pip install -r .deploy/requirements.txt
+
+      - name: Deploy
+        run: python .deploy/deploy.py --environment PROD
+        env:
+          FABRIC_WORKSPACE_ID: ${{ vars.FABRIC_WORKSPACE_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
