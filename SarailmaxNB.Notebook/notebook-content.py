@@ -75,6 +75,17 @@
 
 # CELL ********************
 
+pass
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
 # Library standar untuk manajemen sistem dan durasi proses
 import os
 import time
