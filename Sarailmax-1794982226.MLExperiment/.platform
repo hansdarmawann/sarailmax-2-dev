@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "MLExperiment",
-    "displayName": "Sarailmax-1794975618",
+    "displayName": "Sarailmax-1794982226",
     "description": ""
   },
   "config": {
     "version": "2.0",
-    "logicalId": "5ff3808c-530b-be77-411f-f4a855722402"
+    "logicalId": "7da74078-0e4e-b6fe-4c0e-d5232008b810"
   }
 }
