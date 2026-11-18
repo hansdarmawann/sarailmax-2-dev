@@ -20,8 +20,7 @@
 # META     "environment": {
 # META       "environmentId": "7e8ba526-f922-a8d9-4499-d8dab11655b1",
 # META       "workspaceId": "00000000-0000-0000-0000-000000000000"
-# META     },
-# META     "warehouse": {}
+# META     }
 # META   }
 # META }
 
@@ -201,7 +200,7 @@ ts = time.time()
 
 # Menyiapkan sistem pelacakan eksperimen menggunakan MLflow
 # Menentukan nama eksperimen agar seluruh hasil tercatat dalam satu wadah yang terorganisir
-mlflow.set_experiment("Sarailmax-" + str(int(time.time())))
+mlflow.set_experiment(EXPERIMENT_NAME)
 
 # Menonaktifkan fitur perekaman otomatis (autologging) sementara
 # Hal ini dilakukan agar kita memiliki kendali penuh atas parameter apa saja yang ingin dicatat secara manual
@@ -822,38 +821,44 @@ plt.show()
 
 # CELL ********************
 
-import re
-from mlflow.models import infer_signature
+# Memvalidasi hasil forecasting
+predictions = results.get_prediction(
+    start=maximim_date - pd.DateOffset(months=VALIDATION_MONTHS - 1),
+    end=maximim_date,
+    dynamic=False
+)
 
-# Nama aman: hanya huruf, angka, underscore, dan tanda hubung
-model_name = re.sub(r"[^A-Za-z0-9_-]", "_", f"{EXPERIMENT_NAME}-Sarimax")
-print("Nama model:", model_name)
+# Melakukan forecasting untuk data masa depan yang belum terlihat
+predictions_future = results.get_prediction(
+    start=maximim_date + pd.DateOffset(months=1),
+    end=maximim_date + pd.DateOffset(months=FORECAST_MONTHS),
+    dynamic=False
+)
 
-# Signature dari hasil prediksi validasi
-pred_df = predictions.predicted_mean.to_frame("forecast")
-signature = infer_signature(model_input=None, model_output=pred_df)
+# Mencatat (log) model dan parameter ke MLflow
+model_name = f"{EXPERIMENT_NAME}-Sarimax"
 
 with mlflow.start_run(run_name="Sarimax") as run:
+    mlflow.statsmodels.log_model(
+        results,
+        model_name,
+        registered_model_name=model_name
+    )
     mlflow.log_params({
         "order": (0, 1, 1),
         "seasonal_order": (0, 1, 1, 12),
         "enforce_stationarity": False,
-        "enforce_invertibility": False,
+        "enforce_invertibility": False
     })
-
-    # 1) Log model tanpa registrasi dulu
-    mlflow.statsmodels.log_model(results, model_name, signature=signature)
-
     model_uri = f"runs:/{run.info.run_id}/{model_name}"
+    print("Model disimpan pada run %s" % run.info.run_id)
     print(f"Model URI: {model_uri}")
 
-# 2) Registrasi terpisah
-try:
-    mlflow.register_model(model_uri, model_name)
-except Exception as e:
-    print("Registrasi gagal, model tetap tersimpan di run:", e)
+mlflow.end_run()
 
+# Memuat model yang telah disimpan
 loaded_model = mlflow.statsmodels.load_model(model_uri)
+
 
 # METADATA ********************
 

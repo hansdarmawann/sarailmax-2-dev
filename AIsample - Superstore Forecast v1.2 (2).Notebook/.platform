@@ -1,12 +1,12 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
-    "type": "MLExperiment",
-    "displayName": "Sarailmax-1794983030",
-    "description": ""
+    "type": "Notebook",
+    "displayName": "AIsample - Superstore Forecast v1.2 (2)",
+    "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "3734dfbf-93a3-8674-4348-fb084af533cd"
+    "logicalId": "6f94179c-2dd5-a588-4ddf-4006c53c16d9"
   }
 }
